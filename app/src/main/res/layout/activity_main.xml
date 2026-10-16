@@ -440,5 +440,14 @@
 
         </GridLayout>
 
-    </LinearLayout>
+        <com.google.android.gms.ads.AdView
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-8730424933785076/4075267878"/>
+
+</LinearLayout>
 </ScrollView>

@@ -32,8 +32,28 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import androidx.annotation.NonNull;
+
 
 public class MainActivity extends AppCompatActivity {
+    // ===== AdMob Fields =====
+    private AdView mAdView;
+    private InterstitialAd mInterstitialAd;
+    private RewardedAd mRewardedAd;
+    private static final String BANNER_AD_UNIT_ID = "ca-app-pub-8730424933785076/4075267878";
+    private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-8730424933785076/7548618182";
+    private static final String REWARDED_AD_UNIT_ID = "ca-app-pub-8730424933785076/8039572773";
+
 
     // ===== Language Support =====
     private int currentLang = Translations.LANG_AR;
@@ -200,6 +220,15 @@ private static final int PICK_PIP_VIDEO = 1011;
             }, 100);
         }
         setContentView(R.layout.activity_main);
+
+        // ===== AdMob Initialization =====
+        MobileAds.initialize(this, initializationStatus -> {
+            android.util.Log.d("AdMob", "SDK initialized");
+        });
+        loadInterstitialAd();
+        loadRewardedAd();
+        setupBannerAd();
+
         applyLang();
 
         tvVideoInfo = findViewById(R.id.tvVideoInfo);
@@ -2675,6 +2704,18 @@ private static final int PICK_PIP_VIDEO = 1011;
     }
 
     private void notifyGallery(String filePath) {
+        // Show interstitial ad (but not too often)
+        try {
+            if (mInterstitialAd != null) {
+                mInterstitialAd.show(this);
+                android.util.Log.d("AdMob", "Interstitial shown after save");
+            } else {
+                loadInterstitialAd();
+            }
+        } catch (Exception e) {
+            android.util.Log.e("AdMob", "Interstitial error: " + e.getMessage());
+        }
+        
         try {
             android.media.MediaScannerConnection.scanFile(this, new String[]{filePath}, null, null);
         } catch (Exception e) { e.printStackTrace(); }
@@ -2700,6 +2741,91 @@ private static final int PICK_PIP_VIDEO = 1011;
             getContentResolver().insert(android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
         } catch (Exception e) {
             // تجاهل الأخطاء
+        }
+    }
+
+
+    // ===== AdMob Helper Methods =====
+        private void setupBannerAd() {
+        try {
+            mAdView = findViewById(R.id.adView);
+            if (mAdView != null) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdView.loadAd(adRequest);
+                android.util.Log.d("AdMob", "Banner loaded from XML");
+            }
+        } catch (Exception e) {
+            android.util.Log.e("AdMob", "Banner error: " + e.getMessage());
+        }
+    }
+
+    private void loadInterstitialAd() {
+        AdRequest adRequest = new AdRequest.Builder().build();
+        InterstitialAd.load(this, INTERSTITIAL_AD_UNIT_ID, adRequest,
+            new InterstitialAdLoadCallback() {
+                @Override
+                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                    mInterstitialAd = interstitialAd;
+                    mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                        @Override
+                        public void onAdDismissedFullScreenContent() {
+                            mInterstitialAd = null;
+                            loadInterstitialAd();
+                        }
+                        @Override
+                        public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                            mInterstitialAd = null;
+                        }
+                    });
+                }
+                @Override
+                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                    mInterstitialAd = null;
+                }
+            });
+    }
+
+    private void showInterstitialAd() {
+        if (mInterstitialAd != null) {
+            mInterstitialAd.show(this);
+        }
+    }
+
+    private void loadRewardedAd() {
+        AdRequest adRequest = new AdRequest.Builder().build();
+        RewardedAd.load(this, REWARDED_AD_UNIT_ID, adRequest,
+            new RewardedAdLoadCallback() {
+                @Override
+                public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
+                    mRewardedAd = rewardedAd;
+                    mRewardedAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                        @Override
+                        public void onAdDismissedFullScreenContent() {
+                            mRewardedAd = null;
+                            loadRewardedAd();
+                        }
+                        @Override
+                        public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                            mRewardedAd = null;
+                        }
+                    });
+                }
+                @Override
+                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                    mRewardedAd = null;
+                }
+            });
+    }
+
+    private void showRewardedAd(Runnable onReward) {
+        if (mRewardedAd != null) {
+            mRewardedAd.show(this, rewardItem -> {
+                onReward.run();
+                loadRewardedAd();
+            });
+        } else {
+            // No ad available, give reward anyway
+            onReward.run();
         }
     }
 

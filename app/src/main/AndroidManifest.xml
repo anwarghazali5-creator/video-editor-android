@@ -38,5 +38,8 @@
             <activity android:name=".CropActivity" android:exported="false" />
             <activity android:name=".CutoutActivity" android:exported="false" />
             <activity android:name=".EditorActivity" android:exported="false" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-8730424933785076~4239928561"/>
     </application>
 </manifest>

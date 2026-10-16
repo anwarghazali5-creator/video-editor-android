@@ -16,3 +16,8 @@ backups/
 build.log
 # Large libraries (users will download separately)
 app/libs/*.aar
+
+# Keystore (مهم جداً - لا يُرفع إلى GitHub!)
+keystore.properties
+*.jks
+*.keystore
