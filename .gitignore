@@ -1,0 +1,18 @@
+# Build
+build/
+.gradle/
+*.apk
+# Backups
+backups/
+*.bak
+*.bak3
+*.bak5
+*.bak_*
+*_BROKEN*
+*_OLD*
+# Python
+*.py
+# Logs
+build.log
+# Large libraries (users will download separately)
+app/libs/*.aar

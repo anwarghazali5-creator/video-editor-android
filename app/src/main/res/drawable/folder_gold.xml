@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Layer 1: Shadow under folder (bottom) -->
+    <path
+        android:fillColor="#1A0A00"
+        android:pathData="M18,38 L82,38 L82,84 C82,88 79,90 76,90 L24,90 C21,90 18,88 18,84 Z"
+        android:fillAlpha="0.5"/>
+
+    <!-- Layer 2: Deep shadow -->
+    <path
+        android:fillColor="#4A2800"
+        android:pathData="M17,36 L83,36 L83,82 C83,85 80,87 77,87 L23,87 C20,87 17,85 17,82 Z"/>
+
+    <!-- Layer 3: Folder back tab (darker gold) -->
+    <path
+        android:fillColor="#8B6508"
+        android:pathData="M15,32 L15,26 C15,23 17,21 20,21 L38,21 C40,21 42,22 43,23 L47,27 L82,27 C85,27 87,29 87,32 L87,36 L15,36 Z"/>
+
+    <!-- Layer 4: Tab highlight -->
+    <path
+        android:fillColor="#B8860B"
+        android:pathData="M15,32 L15,27 C15,24 17,22 20,22 L38,22 C40,22 42,23 43,24 L47,28 L82,28 C85,28 87,30 87,33 L87,36 L15,36 Z"/>
+
+    <!-- Layer 5: Folder front face (gradient effect - darker bottom) -->
+    <path
+        android:fillColor="#D4A017"
+        android:pathData="M15,36 L85,36 L85,78 C85,81 83,83 80,83 L20,83 C17,83 15,81 15,78 Z"/>
+
+    <!-- Layer 6: Front face lighter (main body) -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M16,37 L84,37 L84,77 C84,79 82,81 80,81 L20,81 C18,81 16,79 16,77 Z"/>
+
+    <!-- Layer 7: Top shine highlight (bright) -->
+    <path
+        android:fillColor="#FFED4E"
+        android:pathData="M18,38 L82,38 L82,50 L18,50 Z"
+        android:fillAlpha="0.6"/>
+
+    <!-- Layer 8: Top edge shine line -->
+    <path
+        android:fillColor="#FFF9C4"
+        android:pathData="M18,37 L82,37 L82,39 L18,39 Z"
+        android:fillAlpha="0.8"/>
+
+    <!-- Layer 9: Bottom shadow inside folder (depth) -->
+    <path
+        android:fillColor="#B8860B"
+        android:pathData="M17,77 L83,77 L83,80 C83,82 81,83 79,83 L21,83 C19,83 17,82 17,80 Z"
+        android:fillAlpha="0.7"/>
+
+    <!-- Layer 10: Left edge highlight -->
+    <path
+        android:fillColor="#FFF9C4"
+        android:pathData="M16,40 L18,40 L18,78 L16,78 Z"
+        android:fillAlpha="0.5"/>
+
+</vector>

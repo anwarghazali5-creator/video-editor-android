@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="PurpleDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:background">#6A1B9A</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorSecondary">#E1BEE7</item>
+        <item name="colorAccent">#FFEB3B</item>
+    </style>
+</resources>

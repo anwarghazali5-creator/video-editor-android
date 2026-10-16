@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView android:id="@+id/mainScroll" xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F0F0F">
+
+    <LinearLayout
+        android:id="@+id/mainLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="4dp">
+
+        <LinearLayout
+            android:id="@+id/btnSelectVideoCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp"
+            android:layout_margin="4dp"
+            android:background="@drawable/purple_rounded"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="8dp"
+            android:translationZ="4dp"
+            android:foreground="?android:attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:src="@drawable/folder_gold"
+                android:layout_marginBottom="2dp"/>
+
+            <TextView
+                android:id="@+id/tvPickVideoTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="اختيار فيديو"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvVideoInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="لم يتم اختيار فيديو"
+                android:textColor="#E1BEE7"
+                android:textSize="10sp"
+                android:layout_marginTop="0dp"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#4CAF50"
+            android:textSize="9sp"
+            android:gravity="center"
+            android:padding="0dp"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_margin="4dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="#4CAF50"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnCancelOp"
+                android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:text="&#10060; &#1573;&#1604;&#1594;&#1575;&#1569; &#1575;&#1604;&#1593;&#1605;&#1604;&#1610;&#1577;"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#D32F2F"
+            android:visibility="gone" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="6">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnSpan="3"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp"
+                android:orientation="horizontal">
+
+                <Button android:id="@+id/btnLangAr"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="العربية"
+                    android:textSize="10sp" android:textColor="#FFFFFF"
+                    android:backgroundTint="#4CAF50"
+                    android:layout_margin="2dp" android:padding="8dp"/>
+
+                <Button android:id="@+id/btnLangEn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="English"
+                    android:textSize="10sp" android:textColor="#FFFFFF"
+                    android:backgroundTint="#2196F3"
+                    android:layout_margin="2dp" android:padding="8dp"/>
+
+                <Button android:id="@+id/btnLangFr"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Fran&#231;ais"
+                    android:textSize="10sp" android:textColor="#FFFFFF"
+                    android:backgroundTint="#F44336"
+                    android:layout_margin="2dp" android:padding="8dp"/>
+            </LinearLayout>
+
+            <Button android:id="@+id/btnAddText"
+                android:layout_width="0dp"
+                android:text="📝&#10;إضافة نص"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#00BCD4"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+            <Button android:id="@+id/btnVideoOverImage"
+                android:layout_width="0dp"
+                android:text="&#127917;&#10;&#1601;&#1610;&#1583;&#1610;&#1608; &#1601;&#1608;&#1602; &#1589;&#1608;&#1585;&#1577;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#8E24AA"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnAddMusic"
+                android:layout_width="0dp"
+                android:text="🎵&#10;إضافة موسيقى"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#9C27B0"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnSpeed"
+                android:layout_width="0dp"
+                android:text="⏱&#10;تغيير السرعة"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#607D8B"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnRotate"
+                android:layout_width="0dp"
+                android:text="🔄&#10;تدوير الفيديو"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#795548"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnCompress"
+                android:layout_width="0dp"
+                android:text="📦&#10;ضغط الفيديو"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#009688"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnAudio"
+                android:layout_width="0dp"
+                android:text="🎵&#10;أدوات الصوت"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#AB47BC"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnVideoTools"
+                android:layout_width="0dp"
+                android:text="🎬&#10;أدوات الفيديو"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#26C6DA"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnWatermark"
+                android:layout_width="0dp"
+                android:text="🖼️&#10;علامة مائية"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#FFA726"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnEffects"
+                android:layout_width="0dp"
+                android:text="✨&#10;تأثيرات بصرية"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#7E57C2"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnGallery"
+                android:layout_width="0dp"
+                android:text="&#128194;&#10;&#1575;&#1604;&#1605;&#1593;&#1585;&#1590;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#00C853"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            
+
+            <Button android:id="@+id/btnSlideshow"
+                android:layout_width="0dp"
+                android:text="&#128444;&#65039;&#10;&#1589;&#1608;&#1585; &#1573;&#1604;&#1609; &#1601;&#1610;&#1583;&#1610;&#1608;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#FF4081"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnQuality"
+                android:layout_width="0dp"
+                android:text="&#127916;&#10;&#1580;&#1608;&#1583;&#1577; &#1575;&#1604;&#1578;&#1589;&#1583;&#1610;&#1585;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#3F51B5"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnRepeat"
+                android:layout_width="0dp"
+                android:text="&#128257;&#10;&#1578;&#1603;&#1585;&#1575;&#1585; &#1575;&#1604;&#1601;&#1610;&#1583;&#1610;&#1608;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#5C6BC0"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnReplaceMusic"
+                android:layout_width="0dp"
+                android:text="&#127925;&#10;&#1575;&#1587;&#1578;&#1576;&#1583;&#1575;&#1604; &#1575;&#1604;&#1605;&#1608;&#1587;&#1610;&#1602;&#1609;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#8E24AA"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnDenoise"
+                android:layout_width="0dp"
+                android:text="&#128266;&#10;&#1573;&#1586;&#1575;&#1604;&#1577; &#1575;&#1604;&#1590;&#1608;&#1590;&#1575;&#1569;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#00897B"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnScreenshot"
+                android:layout_width="0dp"
+                android:text="&#128248;&#10;&#1604;&#1602;&#1591;&#1577; &#1605;&#1606; &#1575;&#1604;&#1601;&#1610;&#1583;&#1610;&#1608;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#6D4C41"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnTheme"
+                android:layout_width="0dp"
+                android:text="&#127769;&#10;&#1608;&#1590;&#1593; &#1604;&#1610;&#1604;&#1610;/&#1606;&#1607;&#1575;&#1585;&#1610;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#37474F"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnStickers"
+                android:layout_width="0dp"
+                android:text="&#127912;&#10;&#1605;&#1604;&#1589;&#1602;&#1575;&#1578;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#FF6F00"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnPreciseCut"
+                android:layout_width="0dp"
+                android:text="&#9986;&#65039;&#10;&#1602;&#1589; &#1583;&#1602;&#1610;&#1602;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#EF6C00"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnColorAdjust"
+                android:layout_width="0dp"
+                android:text="&#127912;&#10;&#1590;&#1576;&#1591; &#1575;&#1604;&#1571;&#1604;&#1608;&#1575;&#1606;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#E91E63"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnFrame"
+                android:layout_width="0dp"
+                android:text="&#128450;&#65039;&#10;&#1573;&#1591;&#1575;&#1585;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#795548"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+
+            <Button android:id="@+id/btnSocialSize"
+                android:layout_width="0dp"
+                android:text="&#128241;&#10;&#1571;&#1576;&#1593;&#1575;&#1583; &#1575;&#1604;&#1587;&#1608;&#1588;&#1610;&#1575;&#1604;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#5E35B1"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnPiP"
+                android:layout_width="0dp"
+                android:text="&#127909;&#10;&#1601;&#1610;&#1583;&#1610;&#1608; &#1583;&#1575;&#1582;&#1604; &#1601;&#1610;&#1583;&#1610;&#1608;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#283593"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnSwapAudio"
+                android:layout_width="0dp"
+                android:text="&#128260;&#10;&#1578;&#1576;&#1583;&#1610;&#1604; &#1575;&#1604;&#1589;&#1608;&#1578;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#C62828"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnSplit"
+                android:layout_width="0dp"
+                android:text="&#9986;&#65039;&#10;&#1578;&#1602;&#1587;&#1610;&#1605; &#1575;&#1604;&#1601;&#1610;&#1583;&#1610;&#1608;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#F57C00"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnShadowText"
+                android:layout_width="0dp"
+                android:text="&#9997;&#65039;&#10;&#1606;&#1589; &#1576;&#1592;&#1604;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#303F9F"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnVideoInfo"
+                android:layout_width="0dp"
+                android:text="&#128202;&#10;&#1605;&#1593;&#1604;&#1608;&#1605;&#1575;&#1578; &#1575;&#1604;&#1601;&#1610;&#1583;&#1610;&#1608;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#00838F"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnExtraEffects"
+                android:layout_width="0dp"
+                android:text="&#127916;&#10;&#1578;&#1571;&#1579;&#1610;&#1585;&#1575;&#1578; &#1587;&#1610;&#1606;&#1605;&#1575;&#1574;&#1610;&#1577;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#4A148C"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnManualResize"
+                android:layout_width="0dp"
+                android:text="&#128208;&#10;&#1578;&#1593;&#1583;&#1610;&#1604; &#1575;&#1604;&#1571;&#1576;&#1593;&#1575;&#1583;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#00695C"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnToGif"
+                android:layout_width="0dp"
+                android:text="&#127902;&#10;&#1578;&#1581;&#1608;&#1610;&#1604; GIF"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#D84315"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnCollage"
+                android:layout_width="0dp"
+                android:text="&#127916;&#10;&#1603;&#1608;&#1604;&#1575;&#1580;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#AD1457"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnColorTint"
+                android:layout_width="0dp"
+                android:text="🎨&#10;تلوين الفيديو"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#8E24AA"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnAudioFade"
+                android:layout_width="0dp"
+                android:text="🎼&#10;تلاشي الصوت"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#AD1457"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnAudioDuck"
+                android:layout_width="0dp"
+                android:text="🎙️&#10;خفض الموسيقى"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#6A1B9A"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnSpeedRamp"
+                android:layout_width="0dp"
+                android:text="🚀&#10;سرعة متدرجة"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#D84315"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnAudioBoost"
+                android:layout_width="0dp"
+                android:text="🎤&#10;تعزيز الصوت"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#00695C"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnRemoveSilence"
+                android:layout_width="0dp"
+                android:text="&#128263;&#10;&#1581;&#1584;&#1601; &#1575;&#1604;&#1589;&#1605;&#1578;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#37474F"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+            <Button android:id="@+id/btnCutoutImage"
+                android:text="&#9986;&#65039;&#10;&#1602;&#1591;&#1593; &#1589;&#1608;&#1585;&#1577;"
+                android:textSize="10sp" android:textColor="#FFFFFF"
+                android:backgroundTint="#6A1B9A"
+                android:layout_width="0dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp" android:padding="12dp"/>
+
+        </GridLayout>
+
+    </LinearLayout>
+</ScrollView>
