@@ -21,3 +21,5 @@ app/libs/*.aar
 keystore.properties
 *.jks
 *.keystore
+*.aab
+*.apk

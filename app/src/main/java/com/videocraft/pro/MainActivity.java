@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
         b = findViewById(R.id.btnAudioDuck); if (b != null) b.setText(tr("خفض الموسيقى"));
         b = findViewById(R.id.btnSpeedRamp); if (b != null) b.setText(tr("سرعة متدرجة"));
         b = findViewById(R.id.btnAudioBoost); if (b != null) b.setText(tr("تعزيز الصوت"));
-        b = findViewById(R.id.btnRemoveSilence); if (b != null) b.setText(tr("حذف الصمت"));
+        b = findViewById(R.id.btnRemoveSilence); if (b != null) b.setVisibility(android.view.View.GONE);
         b = findViewById(R.id.btnCutoutImage_old); if (b != null) b.setText(tr("قطع صورة"));
         android.widget.TextView tvt = findViewById(R.id.tvPickVideoTitle);
         if (tvt != null) tvt.setText(tr("اختيار فيديو"));

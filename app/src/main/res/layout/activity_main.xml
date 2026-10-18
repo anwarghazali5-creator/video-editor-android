@@ -443,7 +443,8 @@
                 android:textSize="10sp" android:textColor="#FFFFFF"
                 android:backgroundTint="#37474F"
                 android:layout_columnWeight="1"
-                android:layout_margin="4dp" android:padding="12dp"/>
+                android:layout_margin="4dp" android:padding="12dp"
+                android:visibility="gone"/>
 
             <Button android:id="@+id/btnCutoutImage_old"
                 android:visibility="gone"
