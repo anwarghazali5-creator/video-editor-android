@@ -400,6 +400,8 @@ public class Translations {
         add("وضع الراديو (ترددات متوسطة)", "Radio Mode (medium frequencies)", "Mode radio (fréquences moyennes)");
         add("سيتم خفض الموسيقى تلقائياً عندما يتحدث الشخص في الفيديو.\n\nاختر ملف موسيقى الخلفية:", "Music will be lowered automatically when a person speaks.\n\nChoose background music file:", "La musique sera baissée automatiquement quand une personne parle.\n\nChoisir le fichier de musique de fond :");
         add("فيديو فوق صورة", "Video over Image", "Vidéo sur Image");
+        add("تصدير الكل", "Export All", "Exporter tout");
+        add("قص بالثواني", "Trim by Seconds", "Couper par secondes");
     }
 
     private static void add(String ar, String en, String fr) {

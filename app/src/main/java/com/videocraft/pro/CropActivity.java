@@ -43,7 +43,7 @@ public class CropActivity extends AppCompatActivity {
     private float scale = 1f;
     private float cropL = 0, cropT = 0, cropR = 0, cropB = 0;
     private int handleSize = 100;
-    private int controlsHeight = 220;
+    private int controlsHeight = 450;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +115,7 @@ public class CropActivity extends AppCompatActivity {
 
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
-        btnRow.setPadding(0, 10, 0, 0);
+        btnRow.setPadding(0, 30, 0, 0);
 
         Button btnReset = new Button(this);
         btnReset.setText(tr("إعادة ضبط"));
@@ -151,6 +151,8 @@ public class CropActivity extends AppCompatActivity {
 
         FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(-1, controlsHeight);
         clp.gravity = Gravity.BOTTOM;
+        clp.bottomMargin = 100;
+        clp.bottomMargin = 120;
         container.addView(controls, clp);
 
         setContentView(container);
@@ -165,7 +167,7 @@ public class CropActivity extends AppCompatActivity {
             public void run() {
                 int cw = container.getWidth();
                 int ch = container.getHeight();
-                int videoAreaH = ch - controlsHeight;
+                int videoAreaH = ch - controlsHeight - 120;
                 scale = Math.min((float)cw / videoW, (float)videoAreaH / videoH);
                 dispW = (int)(videoW * scale);
                 dispH = (int)(videoH * scale);
@@ -212,7 +214,7 @@ public class CropActivity extends AppCompatActivity {
                 lastX = e.getRawX();
                 lastY = e.getRawY();
                 float minSize = 150;
-                int maxY = container.getHeight() - controlsHeight;
+                int maxY = container.getHeight() - controlsHeight - 120;
                 if (corner.equals("TL")) {
                     cropL += dx; cropT += dy;
                     if (cropL > cropR - minSize) cropL = cropR - minSize;

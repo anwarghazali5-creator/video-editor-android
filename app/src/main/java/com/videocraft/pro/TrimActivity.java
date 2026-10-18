@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -16,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.VideoView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -67,27 +69,71 @@ public class TrimActivity extends AppCompatActivity {
         } catch (Exception e) { }
         endSec = durationMs / 1000f;
 
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(0xFF1A1A1A);
+        // 1. الحاوية الرئيسية ConstraintLayout
+        ConstraintLayout root = new ConstraintLayout(this);
+        root.setLayoutParams(new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT));
+        root.setBackgroundColor(0xFF000000);
 
+        int controlsId = View.generateViewId();
+
+        // 2. الفيديو (يملأ كل المساحة فوق الأدوات)
         videoView = new VideoView(this);
-        LinearLayout.LayoutParams vlp = new LinearLayout.LayoutParams(-1, 0, 1f);
+        ConstraintLayout.LayoutParams vlp = new ConstraintLayout.LayoutParams(0, 0);
+        vlp.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
+        vlp.bottomToTop = controlsId;
+        vlp.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
+        vlp.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
         videoView.setLayoutParams(vlp);
         videoView.setVideoPath(videoPath);
+        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                videoView.seekTo(1);
+            }
+        });
         root.addView(videoView);
+
+        // 3. حاوية الأدوات (ملتصقة بأسفل الشاشة تماماً)
+        LinearLayout controlsLayout = new LinearLayout(this);
+        controlsLayout.setId(controlsId);
+        controlsLayout.setOrientation(LinearLayout.VERTICAL);
+        ConstraintLayout.LayoutParams clp = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+        clp.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID; // الالتصاق بالأسفل
+        controlsLayout.setLayoutParams(clp);
+        controlsLayout.setBackgroundColor(0xFF1A1A1A);
+
+        // شريط الأرقام
+        LinearLayout infoRow = new LinearLayout(this);
+        infoRow.setOrientation(LinearLayout.HORIZONTAL);
+        infoRow.setPadding(20, 10, 20, 5);
+
+        tvStart = new TextView(this);
+        tvStart.setTextColor(0xFF4CAF50);
+        tvStart.setTextSize(16);
+        tvStart.setText("0.0s");
+        tvStart.setGravity(Gravity.START);
+        infoRow.addView(tvStart, new LinearLayout.LayoutParams(0, -2, 1f));
 
         tvCurrent = new TextView(this);
         tvCurrent.setTextColor(0xFFFFFFFF);
-        tvCurrent.setTextSize(14);
-        tvCurrent.setGravity(Gravity.CENTER);
-        tvCurrent.setPadding(20, 8, 20, 8);
+        tvCurrent.setTextSize(16);
         tvCurrent.setText("00:00.0 / " + formatTime(durationMs));
-        root.addView(tvCurrent);
+        tvCurrent.setGravity(Gravity.CENTER);
+        infoRow.addView(tvCurrent, new LinearLayout.LayoutParams(0, -2, 2f));
 
+        tvEnd = new TextView(this);
+        tvEnd.setTextColor(0xFFF44336);
+        tvEnd.setTextSize(16);
+        tvEnd.setText((durationMs/1000f) + "s");
+        tvEnd.setGravity(Gravity.END);
+        infoRow.addView(tvEnd, new LinearLayout.LayoutParams(0, -2, 1f));
+
+        controlsLayout.addView(infoRow);
+
+        // شريط القص
         timelineContainer = new FrameLayout(this);
-        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(-1, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80, getResources().getDisplayMetrics()));
-        tlp.setMargins(0, 10, 0, 10);
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(-1, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 90, getResources().getDisplayMetrics()));
+        tlp.setMargins(0, 0, 0, 10);
         timelineContainer.setLayoutParams(tlp);
         timelineContainer.setBackgroundColor(0xFF000000);
 
@@ -114,7 +160,7 @@ public class TrimActivity extends AppCompatActivity {
         drp.gravity = Gravity.END;
         timelineContainer.addView(dimRight, drp);
 
-        handleWidthPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics());
+        handleWidthPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, getResources().getDisplayMetrics());
 
         leftHandle = new View(this);
         leftHandle.setBackgroundColor(0xFFFFEB3B);
@@ -124,27 +170,12 @@ public class TrimActivity extends AppCompatActivity {
         rightHandle.setBackgroundColor(0xFFFFEB3B);
         timelineContainer.addView(rightHandle, new FrameLayout.LayoutParams(handleWidthPx, -1));
 
-        root.addView(timelineContainer);
+        controlsLayout.addView(timelineContainer);
 
-        LinearLayout timeRow = new LinearLayout(this);
-        timeRow.setOrientation(LinearLayout.HORIZONTAL);
-        timeRow.setPadding(30, 5, 30, 5);
-        tvStart = new TextView(this);
-        tvStart.setTextColor(0xFF4CAF50);
-        tvStart.setTextSize(16);
-        tvStart.setText("0.0s");
-        timeRow.addView(tvStart, new LinearLayout.LayoutParams(0, -2, 1f));
-        tvEnd = new TextView(this);
-        tvEnd.setTextColor(0xFFF44336);
-        tvEnd.setTextSize(16);
-        tvEnd.setGravity(Gravity.END);
-        tvEnd.setText((durationMs/1000f) + "s");
-        timeRow.addView(tvEnd, new LinearLayout.LayoutParams(0, -2, 1f));
-        root.addView(timeRow);
-
+        // الأزرار
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
-        btnRow.setPadding(20, 10, 20, 20);
+        btnRow.setPadding(20, 0, 20, 20);
 
         Button btnPlay = new Button(this);
         btnPlay.setText(tr("تشغيل"));
@@ -157,9 +188,8 @@ public class TrimActivity extends AppCompatActivity {
         btnRow.addView(btnPlay, new LinearLayout.LayoutParams(0, -2, 1f));
 
         Button btnApply = new Button(this);
-        btnApply.setText("قص");
+        btnApply.setText("حفظ القص");
         btnApply.setBackgroundResource(R.drawable.button_click_effect);
-        btnApply.setStateListAnimator(android.animation.AnimatorInflater.loadStateListAnimator(this, R.animator.button_bounce));
         btnApply.setTextColor(0xFFFFFFFF);
         btnApply.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -175,7 +205,6 @@ public class TrimActivity extends AppCompatActivity {
         Button btnCancel = new Button(this);
         btnCancel.setText(tr("إلغاء"));
         btnCancel.setBackgroundResource(R.drawable.button_click_effect);
-        btnCancel.setStateListAnimator(android.animation.AnimatorInflater.loadStateListAnimator(this, R.animator.button_bounce));
         btnCancel.setTextColor(0xFFFFFFFF);
         btnCancel.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -185,7 +214,11 @@ public class TrimActivity extends AppCompatActivity {
         });
         btnRow.addView(btnCancel, new LinearLayout.LayoutParams(0, -2, 1f));
 
-        root.addView(btnRow);
+        controlsLayout.addView(btnRow);
+        
+        // إضافة الأدوات
+        root.addView(controlsLayout);
+        
         setContentView(root);
 
         timelineContainer.post(new Runnable() {

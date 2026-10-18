@@ -109,7 +109,8 @@ public class EditorActivity extends AppCompatActivity {
 
         // قائمة الأدوات: [الإيموجي, الاسم, المعرّف]
         String[][] tools = {
-            {"✂️", tr("قص"), "cut"},
+            
+            {"⏱️", tr("قص بالثواني"), "trim_secs"},
             {"✂️", tr("قص دقيق"), "precise_cut"},
             {"📝", tr("نص"), "text"},
             {"✍️", tr("نص بظل"), "shadow_text"},
@@ -180,4 +181,54 @@ public class EditorActivity extends AppCompatActivity {
 
         setContentView(root);
     }
+    private void showTrimSecondsDialogInEditor() {
+        if (MainActivity.videoPath == null) {
+            android.widget.Toast.makeText(this, "اختر فيديو أولاً", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        android.widget.LinearLayout ll = new android.widget.LinearLayout(this);
+        ll.setOrientation(android.widget.LinearLayout.VERTICAL);
+        ll.setPadding(40, 40, 40, 40);
+
+        final android.widget.EditText etStart = new android.widget.EditText(this);
+        etStart.setHint("ثانية البداية (مثال: 0)");
+        etStart.setTextColor(0xFFFFFFFF);
+        etStart.setHintTextColor(0xFFAAAAAA);
+        ll.addView(etStart);
+
+        final android.widget.EditText etEnd = new android.widget.EditText(this);
+        etEnd.setHint("ثانية النهاية (مثال: 10)");
+        etEnd.setTextColor(0xFFFFFFFF);
+        etEnd.setHintTextColor(0xFFAAAAAA);
+        ll.addView(etEnd);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.PurpleDialog)
+            .setTitle(tr("قص بالثواني"))
+            .setView(ll)
+            .setPositiveButton("تطبيق", (d, w) -> {
+                try {
+                    String sStr = etStart.getText().toString().trim();
+                    String eStr = etEnd.getText().toString().trim();
+                    if (!sStr.isEmpty() && !eStr.isEmpty()) {
+                        float start = Float.parseFloat(sStr);
+                        float end = Float.parseFloat(eStr);
+                        if (start >= 0 && end >= 0) {
+                            ProjectState.trimStart = start;
+                            ProjectState.trimEnd = end;
+                            ProjectState.pendingCount++;
+                            android.widget.Toast.makeText(this, "تم تحديد القص (" + ProjectState.pendingCount + " تعديلات في الانتظار)", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } catch (Exception e) {}
+            })
+            .setNegativeButton("إلغاء", null)
+            .create();
+            
+        dialog.setOnShowListener(d -> {
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setTextColor(0xFFFFFFFF);
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).setTextColor(0xFFFFFFFF);
+        });
+        dialog.show();
+    }
+
 }

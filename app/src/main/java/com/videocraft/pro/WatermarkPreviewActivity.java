@@ -45,6 +45,7 @@ public class WatermarkPreviewActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        
         super.onCreate(savedInstanceState);
         loadLang();
         String videoPath = getIntent().getStringExtra(EXTRA_VIDEO_PATH);
@@ -64,7 +65,7 @@ public class WatermarkPreviewActivity extends AppCompatActivity {
                     videoH = bmp.getHeight();
                     imgVideo.setImageBitmap(bmp);
                 }
-            } catch (Exception e) { }
+            } catch (Throwable t) { }
         } else {
         try {
             MediaMetadataRetriever r = new MediaMetadataRetriever();
@@ -84,7 +85,7 @@ public class WatermarkPreviewActivity extends AppCompatActivity {
             }
             r.release();
             if (bmp != null) imgVideo.setImageBitmap(bmp);
-        } catch (Exception e) { }
+        } catch (Throwable t) { }
         }
         container.addView(imgVideo, new FrameLayout.LayoutParams(-1, -1));
 
@@ -107,7 +108,7 @@ if (wm != null) {
                     wm.setHasAlpha(true);
                     imgWatermark.setImageBitmap(wm);
                 }
-        } catch (Exception e) { }
+        } catch (Throwable t) { }
         FrameLayout.LayoutParams wlp = new FrameLayout.LayoutParams(300, 300);
         wlp.leftMargin = 100;
         wlp.topMargin = 200;
