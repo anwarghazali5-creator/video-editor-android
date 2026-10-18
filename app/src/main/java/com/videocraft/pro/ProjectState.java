@@ -38,7 +38,11 @@ public class ProjectState {
     public static String pipVideoPath = null;
     public static int pipX = 0, pipY = 0, pipW = 200, pipH = 200;
     public static int pipAudioType = 0;
-    public static boolean toMp3 = false;
+    
+    public static boolean isVOI = false;
+    public static String voiImagePath = null;
+    public static String voiVideoPath = null;
+    public static int voiX = 0, voiY = 0, voiW = 200, voiH = 200;
     
     public static boolean hasSocialSize = false;
     public static int socialWidth = 0;
@@ -46,6 +50,7 @@ public class ProjectState {
     
     public static int splitCount = 0;
     public static boolean toGif = false;
+    public static boolean toMp3 = false;
     public static int gifPreset = 0;
     
     public static boolean hasManualResize = false;
@@ -64,7 +69,7 @@ public class ProjectState {
     
     public static boolean isMerging = false;
     public static List<String> mergePaths = new ArrayList<>();
-    
+
     public static int getPendingCount() {
         int count = overlays.size() + filters.size();
         if (cropFilter != null) count++;
@@ -79,10 +84,11 @@ public class ProjectState {
         if (repeatCount > 1) count++;
         if (swapAudioPath != null) count++;
         if (pipVideoPath != null) count++;
-        if (toMp3) count++;
+        if (isVOI) count++;
         if (hasSocialSize) count++;
         if (splitCount > 1) count++;
         if (toGif) count++;
+        if (toMp3) count++;
         if (hasManualResize) count++;
         if (removeSilence) count++;
         if (duckMusicPath != null) count++;
@@ -90,49 +96,21 @@ public class ProjectState {
         if (isMerging) count++;
         return count;
     }
-    
+
     public static void reset() {
-        originalVideoPath = null;
-        overlays.clear();
-        filters.clear();
-        cropFilter = null;
-        pendingCount = 0;
-        trimStart = -1;
-        trimEnd = -1;
-        muteAudio = false;
-        musicPath = null;
-        musicMergeType = 3;
-        audioFilter = null;
-        videoSpeed = 1.0f;
-        compressVideo = false;
-        targetResolution = "1080";
-        qualityChanged = false;
-        slideshowImages.clear();
-        slideshowMusic = null;
-        repeatCount = 1;
-        swapAudioPath = null;
-        swapAudioType = 0;
-        pipVideoPath = null;
-        pipX = 0; pipY = 0; pipW = 200; pipH = 200;
-        pipAudioType = 0; toMp3 = false;
-        hasSocialSize = false;
-        socialWidth = 0;
-        socialHeight = 0;
-        splitCount = 0;
-        toGif = false;
-        gifPreset = 0;
-        hasManualResize = false;
-        manualW = 0;
-        manualH = 0;
-        manualMode = "pad";
-        removeSilence = false;
-        silenceDuration = 0.5f;
-        duckMusicPath = null;
-        isCollage = false;
-        collageMode = "";
-        collagePaths.clear();
-        collageAudioChoice = 0;
-        isMerging = false;
-        mergePaths.clear();
+        originalVideoPath = null; overlays.clear(); filters.clear();
+        cropFilter = null; pendingCount = 0; trimStart = -1; trimEnd = -1;
+        muteAudio = false; musicPath = null; musicMergeType = 3; audioFilter = null;
+        videoSpeed = 1.0f; compressVideo = false; targetResolution = "1080"; qualityChanged = false;
+        slideshowImages.clear(); slideshowMusic = null; repeatCount = 1;
+        swapAudioPath = null; swapAudioType = 0; pipVideoPath = null;
+        pipX = 0; pipY = 0; pipW = 200; pipH = 200; pipAudioType = 0;
+        isVOI = false; voiImagePath = null; voiVideoPath = null; voiX = 0; voiY = 0; voiW = 200; voiH = 200;
+        hasSocialSize = false; socialWidth = 0; socialHeight = 0;
+        splitCount = 0; toGif = false; gifPreset = 0;
+        hasManualResize = false; manualW = 0; manualH = 0; manualMode = "pad";
+        removeSilence = false; silenceDuration = 0.5f; duckMusicPath = null;
+        isCollage = false; collageMode = ""; collagePaths.clear(); collageAudioChoice = 0;
+        isMerging = false; mergePaths.clear();
     }
 }

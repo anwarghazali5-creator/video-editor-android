@@ -1547,104 +1547,37 @@ private static final int PICK_PIP_VIDEO = 1011;
 
 
     private void applyVideoOverImage(int x, int y, int w, int h) {
-        if (voiImagePath == null || voiVideoPath == null) {
-            toast("الملفات غير محددة");
-            return;
-        }
-        if (x < 0) x = 0; if (y < 0) y = 0;
-        if (w < 20) w = 20; if (h < 20) h = 20;
+        if (voiImagePath == null || voiVideoPath == null) { toast("الملفات غير محددة"); return; }
+        if (x < 0) x = 0; if (y < 0) y = 0; if (w < 20) w = 20; if (h < 20) h = 20;
         
         android.graphics.BitmapFactory.Options origOpts = new android.graphics.BitmapFactory.Options();
         origOpts.inJustDecodeBounds = true;
         android.graphics.BitmapFactory.decodeFile(voiImagePath, origOpts);
-        int origW = origOpts.outWidth;
-        int origH = origOpts.outHeight;
-        
-        tvStatus.setText("جاري تجهيز الصورة...");
-        progressBar.setVisibility(android.view.View.VISIBLE);
-        progressBar.setIndeterminate(true);
+        int origW = origOpts.outWidth; int origH = origOpts.outHeight;
         
         final String smallImage = downscaleImage(voiImagePath, 1080);
-        if (smallImage == null) {
-            progressBar.setVisibility(android.view.View.INVISIBLE);
-            progressBar.setIndeterminate(false);
-            toast("فشل تجهيز الصورة");
-            return;
-        }
+        if (smallImage == null) { toast("فشل تجهيز الصورة"); return; }
         
         android.graphics.BitmapFactory.Options newOpts = new android.graphics.BitmapFactory.Options();
         newOpts.inJustDecodeBounds = true;
         android.graphics.BitmapFactory.decodeFile(smallImage, newOpts);
-        int newW = newOpts.outWidth;
-        int newH = newOpts.outHeight;
+        int newW = newOpts.outWidth; int newH = newOpts.outHeight;
         
-        float sx = (float) newW / origW;
-        float sy = (float) newH / origH;
-        final int fx = (int) (x * sx);
-        final int fy = (int) (y * sy);
-        final int fw = (int) (w * sx);
-        final int fh = (int) (h * sy);
+        float sx = (float) newW / origW; float sy = (float) newH / origH;
+        ProjectState.voiX = (int) (x * sx);
+        ProjectState.voiY = (int) (y * sy);
+        ProjectState.voiW = (int) (w * sx);
+        ProjectState.voiH = (int) (h * sy);
+        ProjectState.voiImagePath = smallImage;
+        ProjectState.voiVideoPath = voiVideoPath;
+        videoPath = voiVideoPath;
+        ProjectState.originalVideoPath = voiVideoPath;
+        ProjectState.isVOI = true;
         
-        final String finalOut = newOut("voi");
-        
-        // حساب المدة الإجمالية لعرض النسبة المئوية
-        long totalMs = 0;
-        try {
-            android.media.MediaMetadataRetriever mmr = new android.media.MediaMetadataRetriever();
-            mmr.setDataSource(voiVideoPath);
-            String dur = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION);
-            if (dur != null) totalMs = Long.parseLong(dur);
-            mmr.release();
-        } catch (Exception e) {}
-        final long finalTotalMs = totalMs;
-        
-        tvStatus.setText("جاري فيديو فوق صورة... 0%");
-        progressBar.setIndeterminate(false);
-        progressBar.setProgress(0);
-        
-        String filter = "[1:v]scale=" + fw + ":" + fh + ":flags=lanczos[small];[0:v][small]overlay=" + fx + ":" + fy + "[v]";
-        String cmd = "-y -loop 1 -framerate 25 -i " + smallImage
-            + " -i " + voiVideoPath
-            + " -filter_complex \"" + filter + "\""
-            + " -map \"[v]\" -map 1:a?"
-            + " -shortest"
-            + " -c:v libx264 -preset ultrafast -crf 27 -tune fastdecode -threads 0 -pix_fmt yuv420p"
-            + " -movflags +faststart"
-            + " -c:a aac -b:a 128k -ar 44100 -ac 2 "
-            + finalOut;
-        
-        FFmpegKit.executeAsync(cmd, session -> runOnUiThread(() -> {
-            progressBar.setVisibility(android.view.View.INVISIBLE);
-            progressBar.setIndeterminate(false);
-            if (ReturnCode.isSuccess(session.getReturnCode())) {
-                tvStatus.setText("تم: " + tr("فيديو فوق صورة"));
-                tvStatus.setTextColor(0xFF4CAF50);
-                notifyGallery(finalOut);
-                new java.io.File(smallImage).delete();
-            } else {
-                tvStatus.setText("فشل");
-                tvStatus.setTextColor(0xFFFF0000);
-                String log = session.getAllLogsAsString();
-                if (log != null && log.length() > 500) log = log.substring(log.length() - 500);
-                new AlertDialog.Builder(this, R.style.PurpleDialog)
-                    .setTitle("خطأ FFmpeg")
-                    .setMessage(log != null ? log : "unknown")
-                    .setPositiveButton("حسناً", null)
-                    .show();
-            }
-        }), null, statistics -> {
-            if (statistics != null && finalTotalMs > 0) {
-                int progress = (int) ((statistics.getTime() / (float) finalTotalMs) * 100);
-                if (progress >= 0 && progress <= 100) {
-                    runOnUiThread(() -> {
-                        progressBar.setIndeterminate(false);
-                        progressBar.setVisibility(android.view.View.VISIBLE);
-                        progressBar.setProgress(progress);
-                        tvStatus.setText("جاري فيديو فوق صورة... " + progress + "%");
-                    });
-                }
-            }
-        });
+        ProjectState.pendingCount = ProjectState.getPendingCount();
+        tvStatus.setText("تم إضافة فيديو فوق صورة (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
+        tvStatus.setTextColor(0xFFFFC107);
+        toast("سيتم دمج الفيديو فوق الصورة عند التصدير");
     }
 
     private void runFFmpegVOI(String[] args, String label) {
@@ -3263,6 +3196,25 @@ private static final int PICK_PIP_VIDEO = 1011;
     }
 
     private void processQueueWithVideo(String sourceVideo) {
+        // حماية من مسارات VOI الفارغة
+        if (ProjectState.isVOI) {
+            if (ProjectState.voiImagePath == null || ProjectState.voiVideoPath == null) {
+                toast("خطأ: لم يتم العثور على ملفات VOI، يرجى إعادة الاختيار");
+                ProjectState.isVOI = false;
+                ProjectState.reset();
+                return;
+            }
+            if (!new java.io.File(ProjectState.voiImagePath).exists() || !new java.io.File(ProjectState.voiVideoPath).exists()) {
+                toast("خطأ: ملفات VOI مفقودة، يرجى إعادة الاختيار");
+                ProjectState.isVOI = false;
+                ProjectState.reset();
+                return;
+            }
+        }
+        if (sourceVideo == null) {
+            toast("خطأ: مسار الفيديو الرئيسي فارغ");
+            return;
+        }
         tvStatus.setText("جاري التصدير النهائي...");
         tvStatus.setTextColor(0xFFFFC107);
         progressBar.setVisibility(android.view.View.VISIBLE);
@@ -3275,7 +3227,19 @@ private static final int PICK_PIP_VIDEO = 1011;
         long totalMs = 0;
         try {
             android.media.MediaMetadataRetriever mmr = new android.media.MediaMetadataRetriever();
-            mmr.setDataSource(sourceVideo);
+            if (ProjectState.isVOI && ProjectState.voiVideoPath != null) {
+                mmr.setDataSource(ProjectState.voiVideoPath);
+            } else {
+                if (ProjectState.isVOI && ProjectState.voiVideoPath != null) {
+                mmr.setDataSource(ProjectState.voiVideoPath);
+            } else {
+                if (ProjectState.isVOI && ProjectState.voiVideoPath != null) {
+                mmr.setDataSource(ProjectState.voiVideoPath);
+            } else {
+                mmr.setDataSource(sourceVideo);
+            }
+            }
+            }
             String dur = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION);
             if (dur != null) totalMs = Long.parseLong(dur);
             mmr.release();
@@ -3331,6 +3295,7 @@ private static final int PICK_PIP_VIDEO = 1011;
         }
         int inputIndex = 1;
         int pipInputIndex = -1;
+        int voiInputIndex = -1;
 
         int musicInputIndex = -1;
         int duckInputIndex = -1;
@@ -3355,6 +3320,9 @@ private static final int PICK_PIP_VIDEO = 1011;
 
         StringBuilder filterGraph = new StringBuilder();
         String currentMap = "0:v";
+        
+        
+        
         if (ProjectState.isCollage || !ProjectState.collagePaths.isEmpty()) {
             String vf = "";
             if ("vertical".equals(ProjectState.collageMode)) {
@@ -3422,13 +3390,25 @@ private static final int PICK_PIP_VIDEO = 1011;
             inputIndex++;
         }
 
+        if (ProjectState.isVOI && ProjectState.voiVideoPath != null && new java.io.File(ProjectState.voiVideoPath).exists()) {
+            inputs.append(" -i ").append(ProjectState.voiVideoPath);
+            String voiMap = "voiScale" + inputIndex;
+            filterGraph.append("[").append(inputIndex).append(":v]scale=").append(ProjectState.voiW).append(":").append(ProjectState.voiH).append("[").append(voiMap).append("];");
+            String newVoiMap = "vVOI" + inputIndex;
+            filterGraph.append("[").append(currentMap).append("][").append(voiMap).append("]overlay=").append(ProjectState.voiX).append(":").append(ProjectState.voiY).append(":eof_action=pass[").append(newVoiMap).append("];");
+            currentMap = newVoiMap;
+            voiInputIndex = inputIndex;
+            inputIndex++;
+        }
+
         if (ProjectState.hasSocialSize) {
             String newMap = "vSocial";
             filterGraph.append("[").append(currentMap).append("]scale=").append(ProjectState.socialWidth).append(":").append(ProjectState.socialHeight).append(":force_original_aspect_ratio=decrease,pad=").append(ProjectState.socialWidth).append(":").append(ProjectState.socialHeight).append(":(ow-iw)/2:(oh-ih)/2:color=black,setsar=1[").append(newMap).append("];");
             currentMap = newMap;
         }
 
-        String finalAudioMap = "-map 0:a?";
+        String finalAudioMap = ProjectState.isVOI ? "-map 1:a?" : "-map 0:a?";
+        String mainAudio = ProjectState.isVOI ? "1:a" : "0:a";
         String finalAudioCodec = "-c:a aac -b:a 96k";
         String audioComplex = "";
 
@@ -3439,7 +3419,7 @@ private static final int PICK_PIP_VIDEO = 1011;
                 finalAudioMap = "-map " + pipInputIndex + ":a?";
             } else if (ProjectState.pipAudioType == 2) {
                 // دمج الصوتين
-                audioComplex = ";[0:a?][" + pipInputIndex + ":a?]amix=inputs=2:duration=first[aout]";
+                audioComplex = ";[" + mainAudio + ":a?][" + pipInputIndex + ":a?]amix=inputs=2:duration=first[aout]";
                 finalAudioMap = "-map \"[aout]\"";
             } else if (ProjectState.pipAudioType == 3) {
                 // بدون صوت
@@ -3457,20 +3437,20 @@ private static final int PICK_PIP_VIDEO = 1011;
             if (total == 2) {
                 if (choice == 0) audioMapIndex = 0;
                 else if (choice == 1) audioMapIndex = 1;
-                else if (choice == 2) { audioComplex = ";[0:a][1:a]amix=inputs=2:duration=first[aout]"; finalAudioMap = "-map \"[aout]\""; audioMapIndex = -1; }
+                else if (choice == 2) { audioComplex = ";[" + mainAudio + ":a][1:a]amix=inputs=2:duration=first[aout]"; finalAudioMap = "-map \"[aout]\""; audioMapIndex = -1; }
                 else { noAudio = true; }
             } else if (total == 3) {
                 if (choice == 0) audioMapIndex = 0;
                 else if (choice == 1) audioMapIndex = 1;
                 else if (choice == 2) audioMapIndex = 2;
-                else if (choice == 3) { audioComplex = ";[0:a][1:a][2:a]amix=inputs=3:duration=first[aout]"; finalAudioMap = "-map \"[aout]\""; audioMapIndex = -1; }
+                else if (choice == 3) { audioComplex = ";[" + mainAudio + ":a][1:a][2:a]amix=inputs=3:duration=first[aout]"; finalAudioMap = "-map \"[aout]\""; audioMapIndex = -1; }
                 else { noAudio = true; }
             } else {
                 if (choice == 0) audioMapIndex = 0;
                 else if (choice == 1) audioMapIndex = 1;
                 else if (choice == 2) audioMapIndex = 2;
                 else if (choice == 3) audioMapIndex = 3;
-                else if (choice == 4) { audioComplex = ";[0:a][1:a][2:a][3:a]amix=inputs=4:duration=first[aout]"; finalAudioMap = "-map \"[aout]\""; audioMapIndex = -1; }
+                else if (choice == 4) { audioComplex = ";[" + mainAudio + ":a][1:a][2:a][3:a]amix=inputs=4:duration=first[aout]"; finalAudioMap = "-map \"[aout]\""; audioMapIndex = -1; }
                 else { noAudio = true; }
             }
             if (noAudio) {
@@ -3486,24 +3466,24 @@ private static final int PICK_PIP_VIDEO = 1011;
             if (ProjectState.swapAudioType == 0) { // Replace
                 finalAudioMap = "-map " + swapAudioInputIndex + ":a";
             } else { // Mix
-                audioComplex = ";[0:a][" + swapAudioInputIndex + ":a]amix=inputs=2:duration=first[aout]";
+                audioComplex = ";[" + mainAudio + ":a][" + swapAudioInputIndex + ":a]amix=inputs=2:duration=first[aout]";
                 finalAudioMap = "-map \"[aout]\"";
             }
         } else if (ProjectState.musicPath != null) {
             if (ProjectState.musicMergeType == 0 || ProjectState.musicMergeType == 1 || ProjectState.musicMergeType == 2) {
                 finalAudioMap = "-map " + musicInputIndex + ":a";
             } else {
-                audioComplex = ";[0:a][" + musicInputIndex + ":a]amix=inputs=2:duration=first[aout]";
+                audioComplex = ";[" + mainAudio + ":a][" + musicInputIndex + ":a]amix=inputs=2:duration=first[aout]";
                 finalAudioMap = "-map \"[aout]\"";
             }
         } else if (ProjectState.audioFilter != null) {
-            audioComplex = ";[0:a]" + ProjectState.audioFilter + "[aout]";
+            audioComplex = ";[" + mainAudio + ":a]" + ProjectState.audioFilter + "[aout]";
             finalAudioMap = "-map \"[aout]\"";
         }
 
         if (ProjectState.videoSpeed != 1.0f) {
             if (audioComplex.isEmpty()) {
-                audioComplex = ";[0:a]atempo=" + ProjectState.videoSpeed + "[aspeed]";
+                audioComplex = ";[" + mainAudio + ":a]atempo=" + ProjectState.videoSpeed + "[aspeed]";
                 finalAudioMap = "-map \"[aspeed]\"";
             } else {
                 audioComplex += ";[aout]atempo=" + ProjectState.videoSpeed + "[aspeed2]";
@@ -3519,7 +3499,7 @@ private static final int PICK_PIP_VIDEO = 1011;
                 audioComplex = "";
             } else if (ProjectState.pipAudioType == 2) {
                 // دمج الصوتين
-                audioComplex = ";[0:a][" + pipInputIndex + ":a]amix=inputs=2:duration=first[aout]";
+                audioComplex = ";[" + mainAudio + ":a][" + pipInputIndex + ":a]amix=inputs=2:duration=first[aout]";
                 finalAudioMap = "-map \"[aout]\"";
             } else if (ProjectState.pipAudioType == 3) {
                 // بدون صوت
@@ -3557,10 +3537,10 @@ private static final int PICK_PIP_VIDEO = 1011;
         }
         if (fullFilter.isEmpty()) {
             // لا توجد أي فلاتر (لا فيديو ولا صوت)
-            cmd = inputs.toString() + " -map 0:v " + finalAudioMap + " " + videoCodec + finalAudioCodec + " -shortest -vsync vfr " + out;
+            cmd = inputs.toString() + " -map 0:v " + finalAudioMap + " " + videoCodec + finalAudioCodec + " -vsync vfr " + out;
         } else {
             // توجد فلاتر (قد تكون صوتية فقط أو بصرية أو كلاهما)
-            cmd = inputs.toString() + " -filter_complex \"" + fullFilter + "\" -map " + videoMapParam + " " + finalAudioMap + " " + videoCodec + finalAudioCodec + " -shortest -vsync vfr " + out;
+            cmd = inputs.toString() + " -filter_complex \"" + fullFilter + "\" -map " + videoMapParam + " " + finalAudioMap + " " + videoCodec + finalAudioCodec + " -vsync vfr " + out;
         }
 
         android.util.Log.d("VOI_EXPORT", "CMD: " + cmd);
@@ -3618,7 +3598,7 @@ private static final int PICK_PIP_VIDEO = 1011;
     }
 
 private void exportFinalVideo() {
-        if (ProjectState.slideshowImages.isEmpty() && ProjectState.originalVideoPath == null && videoPath == null) { toast("اختر فيديو أو صور أولاً"); return; }
+        if (ProjectState.slideshowImages.isEmpty() && ProjectState.originalVideoPath == null && videoPath == null && !(ProjectState.isVOI && ProjectState.voiVideoPath != null)) { toast("اختر فيديو أو صور أولاً"); return; }
         if (ProjectState.slideshowImages.isEmpty() && ProjectState.pendingCount == 0) { toast("لم تقم بأي تعديلات بعد."); return; }
 
         if (!ProjectState.slideshowImages.isEmpty()) {
@@ -3668,7 +3648,12 @@ private void exportFinalVideo() {
             return;
         }
         
-        String sourceVideo = (ProjectState.originalVideoPath != null) ? ProjectState.originalVideoPath : videoPath;
+        String sourceVideo;
+        if (ProjectState.isVOI && ProjectState.voiImagePath != null) {
+            sourceVideo = ProjectState.voiImagePath;
+        } else {
+            sourceVideo = (ProjectState.originalVideoPath != null) ? ProjectState.originalVideoPath : videoPath;
+        }
         
         if (ProjectState.isMerging && !ProjectState.mergePaths.isEmpty()) {
             doPreMerge(sourceVideo, ProjectState.mergePaths);
