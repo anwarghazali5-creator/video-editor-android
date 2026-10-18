@@ -153,13 +153,13 @@ public class MainActivity extends AppCompatActivity {
         b = findViewById(R.id.btnManualResize); if (b != null) b.setText(tr("تعديل الأبعاد"));
         b = findViewById(R.id.btnToGif); if (b != null) b.setText(tr("تحويل GIF"));
         b = findViewById(R.id.btnCollage); if (b != null) b.setText(tr("كولاج"));
-        b = findViewById(R.id.btnCutoutImage_old_NEW); if (b != null) b.setText(tr("تلوين الفيديو"));
+        b = findViewById(R.id.btnCutoutImage_old_NEW); if (b != null) b.setText(tr("قطع صورة"));
         b = findViewById(R.id.btnAudioFade); if (b != null) b.setText(tr("تلاشي الصوت"));
         b = findViewById(R.id.btnAudioDuck); if (b != null) b.setText(tr("خفض الموسيقى"));
         b = findViewById(R.id.btnSpeedRamp); if (b != null) b.setText(tr("سرعة متدرجة"));
         b = findViewById(R.id.btnAudioBoost); if (b != null) b.setText(tr("تعزيز الصوت"));
         b = findViewById(R.id.btnRemoveSilence); if (b != null) b.setVisibility(android.view.View.GONE);
-        b = findViewById(R.id.btnCutoutImage_old); if (b != null) b.setText(tr("قطع صورة"));
+        
         android.widget.TextView tvt = findViewById(R.id.tvPickVideoTitle);
         if (tvt != null) tvt.setText(tr("اختيار فيديو"));
         android.widget.TextView tvInfo = findViewById(R.id.tvVideoInfo);
@@ -246,6 +246,8 @@ private static final int PICK_PIP_VIDEO = 1011;
     private static final int PICK_VOI = 1040;
     private String voiVideoPath;
     private boolean isPipFlow = false;
+    private boolean isCutoutFlow = false;
+    private String pendingCutoutPath = null;
     private String voiImagePath;
     private static final int PICK_PIP_PREVIEW = 1012;
     private static final int PICK_SWAP_AUDIO = 1013;
@@ -303,6 +305,18 @@ private static final int PICK_PIP_VIDEO = 1011;
         tvStatus = findViewById(R.id.tvStatus);
         progressBar = findViewById(R.id.progressBar);
         btnCancelOp = findViewById(R.id.btnCancelOp);
+        btnCancelOp.setOnClickListener(v -> {
+            if (currentSession != null) {
+                FFmpegKit.cancel(currentSession.getSessionId());
+                currentSession = null;
+                toast("تم إلغاء العملية");
+            }
+            progressBar.setVisibility(android.view.View.INVISIBLE);
+            progressBar.setIndeterminate(false);
+            btnCancelOp.setVisibility(android.view.View.GONE);
+            tvStatus.setText("تم إلغاء العملية");
+            tvStatus.setTextColor(0xFFFF9800);
+        });
 
         outputDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_MOVIES), "VideoEditorPro");
@@ -345,13 +359,14 @@ private static final int PICK_PIP_VIDEO = 1011;
         findViewById(R.id.btnScreenshot).setOnClickListener(v -> captureScreenshot());
         findViewById(R.id.btnTheme).setOnClickListener(v -> toggleTheme());
         findViewById(R.id.btnStickers).setOnClickListener(v -> showStickersDialog());
-        findViewById(R.id.btnCutoutImage_old).setOnClickListener(v -> pickCutoutImage());
+        
         findViewById(R.id.btnAudioFade).setOnClickListener(v -> showAudioFadeDialog());
         findViewById(R.id.btnAudioDuck).setOnClickListener(v -> showAudioDuckDialog());
         findViewById(R.id.btnSpeedRamp).setOnClickListener(v -> showSpeedRampDialog());
         findViewById(R.id.btnAudioBoost).setOnClickListener(v -> showAudioBoostDialog());
         findViewById(R.id.btnRemoveSilence).setOnClickListener(v -> showRemoveSilenceDialog());
-        findViewById(R.id.btnCutoutImage_old_NEW).setOnClickListener(v -> showColorTintDialog());
+        findViewById(R.id.btnCutoutImage_old_NEW).setOnClickListener(v -> pickCutoutImage());
+        findViewById(R.id.btnColorTint).setOnClickListener(v -> showColorTintDialog());
 
         
         findViewById(R.id.btnPreciseCut).setOnClickListener(v -> showPreciseCutDialog());
@@ -394,6 +409,30 @@ private static final int PICK_PIP_VIDEO = 1011;
         if (res != RESULT_OK || data == null) return;
         Uri uri = data.getData();
         if (req == PICK_VIDEO) {
+            if (isCutoutFlow) {
+                if (data == null || data.getData() == null) { isCutoutFlow = false; return; }
+                final android.net.Uri cutoutVidUri = data.getData();
+                tvStatus.setText("جاري تجهيز الفيديو...");
+                tvStatus.setTextColor(0xFFFFC107);
+                new Thread(() -> {
+                    final String result = copyToCache(cutoutVidUri, "video_cutout_" + System.currentTimeMillis() + ".mp4");
+                    runOnUiThread(() -> {
+                        if (result != null) {
+                            videoPath = result;
+                            ProjectState.originalVideoPath = result;
+                            isCutoutFlow = false;
+                            if (pendingCutoutPath != null) {
+                                applyCutoutImage(pendingCutoutPath);
+                                pendingCutoutPath = null;
+                            }
+                        } else {
+                            isCutoutFlow = false;
+                            toast("فشل نسخ الفيديو");
+                        }
+                    });
+                }).start();
+                return;
+            }
             if (isPipFlow) {
                 tvStatus.setText("جاري نسخ الفيديو الرئيسي...");
                 new Thread(() -> {
@@ -444,7 +483,19 @@ private static final int PICK_PIP_VIDEO = 1011;
             }
         } else if (req == 2002) {
             String resultPath = data.getStringExtra(CutoutActivity.EXTRA_RESULT_PATH);
-            if (resultPath != null) applyCutoutImage(resultPath);
+            if (resultPath != null) {
+                if (videoPath == null || ProjectState.originalVideoPath == null) {
+                    // لا يوجد فيديو مختار - نطلب من المستخدم اختيار الفيديو أولاً
+                    pendingCutoutPath = resultPath;
+                    isCutoutFlow = true;
+                    //
+                    Intent vidIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                    vidIntent.setType("video/*");
+                    startActivityForResult(vidIntent, PICK_VIDEO);
+                } else {
+                    applyCutoutImage(resultPath);
+                }
+            }
         } else if (req == PICK_COLLAGE_VIDEOS) {
             try {
                 multiVideoPaths.clear();
@@ -538,6 +589,7 @@ private static final int PICK_PIP_VIDEO = 1011;
                 
                 tvStatus.setText("تم تحديد القص (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
                 tvStatus.setTextColor(0xFFFFC107);
+                toast("سيتم التطبيق عند التصدير");
             }
         } else if (req == PICK_IMAGES) {
             imagePaths.clear();
@@ -806,9 +858,7 @@ private static final int PICK_PIP_VIDEO = 1011;
                 });
             }
         });
-        btnCancelOp.setOnClickListener(v -> {
-            if (currentSession != null) FFmpegKit.cancel(currentSession.getSessionId());
-        });
+// old listener removed
     }
 
     private void showCutDialog() {
@@ -824,6 +874,7 @@ private static final int PICK_PIP_VIDEO = 1011;
         ProjectState.pendingCount++;
         tvStatus.setText("تم تحديد القص (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
         tvStatus.setTextColor(0xFFFFC107);
+        toast("سيتم التطبيق عند التصدير");
     }
 
     private void showPreciseCutDialog() { showCutDialog(); }
@@ -933,6 +984,7 @@ private static final int PICK_PIP_VIDEO = 1011;
             ProjectState.pendingCount = ProjectState.getPendingCount();
             tvStatus.setText("تم إضافة التدوير (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
             tvStatus.setTextColor(0xFFFFC107);
+            toast("سيتم التطبيق عند التصدير");
         });
     }
 
@@ -1021,26 +1073,31 @@ private static final int PICK_PIP_VIDEO = 1011;
                 ProjectState.pendingCount = ProjectState.getPendingCount();
                 tvStatus.setText("تم إضافة العكس (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
                 tvStatus.setTextColor(0xFFFFC107);
+                toast("سيتم التطبيق عند التصدير");
             } else if (which == 2) {
                 ProjectState.filters.add("hflip");
                 ProjectState.pendingCount = ProjectState.getPendingCount();
                 tvStatus.setText("تم إضافة المرآة الأفقية (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
                 tvStatus.setTextColor(0xFFFFC107);
+                toast("سيتم التطبيق عند التصدير");
             } else if (which == 3) {
                 ProjectState.filters.add("vflip");
                 ProjectState.pendingCount = ProjectState.getPendingCount();
                 tvStatus.setText("تم إضافة المرآة العمودية (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
                 tvStatus.setTextColor(0xFFFFC107);
+                toast("سيتم التطبيق عند التصدير");
             } else if (which == 4) {
                 ProjectState.filters.add("crop=ih*9/16:ih,scale=1080:1920");
                 ProjectState.pendingCount = ProjectState.getPendingCount();
                 tvStatus.setText("تم إضافة أبعاد تيك توك (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
                 tvStatus.setTextColor(0xFFFFC107);
+                toast("سيتم التطبيق عند التصدير");
             } else if (which == 5) {
                 ProjectState.filters.add("crop=ih:ih,scale=1080:1080");
                 ProjectState.pendingCount = ProjectState.getPendingCount();
                 tvStatus.setText("تم إضافة أبعاد انستغرام (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
                 tvStatus.setTextColor(0xFFFFC107);
+                toast("سيتم التطبيق عند التصدير");
             }
         });
     }
@@ -1255,11 +1312,11 @@ private static final int PICK_PIP_VIDEO = 1011;
         if (isDarkMode) {
             if (scroll != null) scroll.setBackgroundColor(0xFF0F0F0F);
             if (root != null) root.setBackgroundColor(0xFF0F0F0F);
-            tvVideoInfo.setTextColor(0xFFB0B0B0);
+            tvVideoInfo.setTextColor(0xFFFFEB3B);
         } else {
             if (scroll != null) scroll.setBackgroundColor(0xFFF5F5F5);
             if (root != null) root.setBackgroundColor(0xFFF5F5F5);
-            tvVideoInfo.setTextColor(0xFF333333);
+            tvVideoInfo.setTextColor(0xFFFFEB3B);
         }
     }
 
@@ -1328,7 +1385,8 @@ private static final int PICK_PIP_VIDEO = 1011;
         ProjectState.pendingCount = ProjectState.getPendingCount();
         tvStatus.setText("تمت إضافة النص (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
         tvStatus.setTextColor(0xFFFFC107);
-        toast("تمت إضافة النص بنجاح");
+        toast("سيتم التطبيق عند التصدير");
+        //
     }
 
     private void showColorAdjustDialog() {
@@ -1368,7 +1426,8 @@ private static final int PICK_PIP_VIDEO = 1011;
                 ProjectState.pendingCount = ProjectState.getPendingCount();
                 tvStatus.setText("تم إضافة ضبط الألوان (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
                 tvStatus.setTextColor(0xFFFFC107);
-                })
+                
+                    toast("سيتم التطبيق عند التصدير");})
             .setNegativeButton(tr("إلغاء"), null).create();
         dialog.setOnShowListener(d -> {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(0xFFFFFFFF);
@@ -3546,7 +3605,7 @@ private static final int PICK_PIP_VIDEO = 1011;
         android.util.Log.d("VOI_EXPORT", "CMD: " + cmd);
         final long finalTotalMs = totalMs;
 
-        FFmpegKit.executeAsync(cmd, session -> runOnUiThread(() -> {
+        currentSession = FFmpegKit.executeAsync(cmd, session -> runOnUiThread(() -> {
             progressBar.setVisibility(android.view.View.INVISIBLE);
             progressBar.setIndeterminate(false);
             btnCancelOp.setVisibility(android.view.View.GONE);
@@ -3570,6 +3629,13 @@ private static final int PICK_PIP_VIDEO = 1011;
                     ProjectState.reset();
                     toast("تم حفظ الفيديو في المعرض بنجاح!");
                 }
+            } else if (ReturnCode.isCancel(session.getReturnCode())) {
+                // تم الإلغاء بواسطة المستخدم - لا نعرض نافذة خطأ
+                tvStatus.setText("تم إلغاء التصدير");
+                tvStatus.setTextColor(0xFFFF9800);
+                toast("تم إلغاء العملية");
+                try { new java.io.File(out).delete(); } catch(Exception e) {}
+                ProjectState.reset();
             } else {
                 tvStatus.setText("فشل التصدير");
                 tvStatus.setTextColor(0xFFFF0000);
@@ -3704,6 +3770,7 @@ private void exportFinalVideo() {
                     
                     tvStatus.setText("تم تحديد القص بالثواني (" + ProjectState.pendingCount + " تعديلات في الانتظار)");
                     tvStatus.setTextColor(0xFFFFC107);
+                    toast("سيتم التطبيق عند التصدير");
                     
                 } catch (Exception e) {
                     toast("أدخل أرقاماً صحيحة (ثواني)");

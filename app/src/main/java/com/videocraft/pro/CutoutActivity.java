@@ -47,11 +47,13 @@ public class CutoutActivity extends AppCompatActivity {
     // Tools
     private static final int TOOL_ERASER = 0;
     private static final int TOOL_MAGIC = 1;
+    private boolean isMagicProcessing = false;
     private static final int TOOL_RECT = 2;
     private static final int TOOL_RESTORE = 3;
 
     private ImageView imgView;
-    private Bitmap workingBitmap;    // current image
+    private Bitmap workingBitmap;
+    private Bitmap baseBitmap = null;    // current image
     private Bitmap originalBitmap;   // original for restore
     private Paint eraserPaint;
     private Paint restorePaint;
@@ -115,7 +117,8 @@ public class CutoutActivity extends AppCompatActivity {
         originalBitmap.setHasAlpha(true);
         if (scaled != originalBitmap) scaled.recycle();
 
-        workingBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        Bitmap sourceBitmap = (baseBitmap != null && !baseBitmap.isRecycled()) ? baseBitmap : originalBitmap;
+            workingBitmap = sourceBitmap.copy(Bitmap.Config.ARGB_8888, true);
         workingBitmap.setHasAlpha(true);
 
         eraserPaint = new Paint();
@@ -288,7 +291,7 @@ public class CutoutActivity extends AppCompatActivity {
             else toolBtns[i].setBackgroundColor(0xFF455A64);
         }
         String[] tips = {tr("امسح بإصبعك"), tr("اضغط على اللون لمسحه"), tr("اسحب لتحديد المستطيل"), tr("ارسم بإصبعك لاستعادة ما مسحته")};
-        Toast.makeText(this, tips[tool], Toast.LENGTH_SHORT).show();
+        // تم حذف رسالة النصيحة
     }
 
     private void highlightSizes(Button[] btns) {
@@ -456,87 +459,98 @@ public class CutoutActivity extends AppCompatActivity {
     }
 
     private void magicWand(int x, int y) {
+        if (workingBitmap == null || workingBitmap.isRecycled()) return;
         if (x < 0 || y < 0 || x >= workingBitmap.getWidth() || y >= workingBitmap.getHeight()) return;
 
-        final int origW = workingBitmap.getWidth();
-        final int origH = workingBitmap.getHeight();
+        Bitmap small = null;
+        try {
+            final int origW = workingBitmap.getWidth();
+            final int origH = workingBitmap.getHeight();
 
-        // تصغير إلى 400 بكسل (أسرع)
-        int maxDim = 400;
-        float scale = 1f;
-        int smallW = origW, smallH = origH;
-        if (origW > maxDim || origH > maxDim) {
-            scale = Math.min((float)maxDim / origW, (float)maxDim / origH);
-            smallW = Math.max(1, (int)(origW * scale));
-            smallH = Math.max(1, (int)(origH * scale));
-        }
-
-        // Nearest neighbor (أسرع 5x من الفلتر)
-        Bitmap small = Bitmap.createScaledBitmap(workingBitmap, smallW, smallH, false);
-        int total = smallW * smallH;
-        int[] pixels = new int[total];
-        small.getPixels(pixels, 0, smallW, 0, 0, smallW, smallH);
-
-        int sx = Math.min(Math.max(0, (int)(x * scale)), smallW - 1);
-        int sy = Math.min(Math.max(0, (int)(y * scale)), smallH - 1);
-
-        int target = pixels[sy * smallW + sx];
-        int tr = (target >> 16) & 0xFF;
-        int tg = (target >> 8) & 0xFF;
-        int tb = target & 0xFF;
-        int tolerance = 60;
-        int tolSq = tolerance * tolerance * 3;
-
-        boolean[] visited = new boolean[total];
-        int[] stack = new int[total];
-        int top = 0;
-        stack[top++] = sy * smallW + sx;
-
-        while (top > 0) {
-            int idx = stack[--top];
-            if (visited[idx]) continue;
-            visited[idx] = true;
-
-            int cc = pixels[idx];
-            int cr = (cc >> 16) & 0xFF;
-            int cg = (cc >> 8) & 0xFF;
-            int cb = cc & 0xFF;
-            int dr = cr - tr, dg = cg - tg, db = cb - tb;
-            if (dr*dr + dg*dg + db*db > tolSq) continue;
-
-            pixels[idx] = 0x00000000;
-
-            int px = idx % smallW;
-            int py = idx / smallW;
-            if (px > 0) stack[top++] = idx - 1;
-            if (px < smallW - 1) stack[top++] = idx + 1;
-            if (py > 0) stack[top++] = idx - smallW;
-            if (py < smallH - 1) stack[top++] = idx + smallW;
-        }
-
-        small.setPixels(pixels, 0, smallW, 0, 0, smallW, smallH);
-
-        // Nearest neighbor للرجوع (أسرع)
-        Bitmap maskBig = Bitmap.createScaledBitmap(small, origW, origH, false);
-        int[] maskPixels = new int[origW * origH];
-        maskBig.getPixels(maskPixels, 0, origW, 0, 0, origW, origH);
-
-        int[] origPixels = new int[origW * origH];
-        workingBitmap.getPixels(origPixels, 0, origW, 0, 0, origW, origH);
-
-        int count = 0;
-        for (int i = 0; i < origPixels.length; i++) {
-            if ((maskPixels[i] & 0xFF000000) == 0) {
-                origPixels[i] = 0x00000000;
-                count++;
+            int maxDim = 400;
+            float scale = 1f;
+            int smallW = origW, smallH = origH;
+            if (origW > maxDim || origH > maxDim) {
+                scale = Math.min((float)maxDim / origW, (float)maxDim / origH);
+                smallW = Math.max(1, (int)(origW * scale));
+                smallH = Math.max(1, (int)(origH * scale));
             }
-        }
 
-        workingBitmap.setPixels(origPixels, 0, origW, 0, 0, origW, origH);
-        small.recycle();
-        maskBig.recycle();
-        imgView.setImageBitmap(workingBitmap);
-        Toast.makeText(this, "مسح " + count + " بكسل", Toast.LENGTH_SHORT).show();
+            small = Bitmap.createScaledBitmap(workingBitmap, smallW, smallH, false);
+            int total = smallW * smallH;
+            int[] pixels = new int[total];
+            small.getPixels(pixels, 0, smallW, 0, 0, smallW, smallH);
+
+            int sx = Math.min(Math.max(0, (int)(x * scale)), smallW - 1);
+            int sy = Math.min(Math.max(0, (int)(y * scale)), smallH - 1);
+
+            int target = pixels[sy * smallW + sx];
+            int tr = (target >> 16) & 0xFF;
+            int tg = (target >> 8) & 0xFF;
+            int tb = target & 0xFF;
+            int tolerance = 60;
+            int tolSq = tolerance * tolerance * 3;
+
+            boolean[] visited = new boolean[total];
+            int[] stack = new int[total];
+            int top = 0;
+            stack[top++] = sy * smallW + sx;
+
+            while (top > 0) {
+                int idx = stack[--top];
+                if (visited[idx]) continue;
+                visited[idx] = true;
+
+                int cc = pixels[idx];
+                int cr = (cc >> 16) & 0xFF;
+                int cg = (cc >> 8) & 0xFF;
+                int cb = cc & 0xFF;
+                int dr = cr - tr, dg = cg - tg, db = cb - tb;
+                if (dr*dr + dg*dg + db*db > tolSq) continue;
+                pixels[idx] = 0x00000000;
+
+                int px = idx % smallW;
+                int py = idx / smallW;
+                if (px > 0) stack[top++] = idx - 1;
+                if (px < smallW - 1) stack[top++] = idx + 1;
+                if (py > 0) stack[top++] = idx - smallW;
+                if (py < smallH - 1) stack[top++] = idx + smallW;
+            }
+
+            int[] origPixels = new int[origW * origH];
+            workingBitmap.getPixels(origPixels, 0, origW, 0, 0, origW, origH);
+
+            int count = 0;
+            for (int oy = 0; oy < origH; oy++) {
+                int sy2 = oy * smallH / origH;
+                int rowOffset = oy * origW;
+                for (int ox = 0; ox < origW; ox++) {
+                    int sx2 = ox * smallW / origW;
+                    int smallPixel = pixels[sy2 * smallW + sx2];
+                    if ((smallPixel & 0xFF000000) == 0) {
+                        origPixels[rowOffset + ox] = 0x00000000;
+                        count++;
+                    }
+                }
+            }
+
+            workingBitmap.setPixels(origPixels, 0, origW, 0, 0, origW, origH);
+
+            // ⚡ تحديث baseBitmap فقط (وليس originalBitmap) للحفاظ على عمل زر الاستعادة
+            if (baseBitmap == null || baseBitmap.getWidth() != origW || baseBitmap.getHeight() != origH) {
+                baseBitmap = Bitmap.createBitmap(origW, origH, Bitmap.Config.ARGB_8888);
+            }
+            baseBitmap.setPixels(origPixels, 0, origW, 0, 0, origW, origH);
+
+            imgView.setImageBitmap(workingBitmap);
+        } catch (OutOfMemoryError e) {
+            System.gc();
+            Toast.makeText(this, "ذاكرة غير كافية!", Toast.LENGTH_SHORT).show();
+        } catch (Throwable t) {
+            Toast.makeText(this, "حدث خطأ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+        } finally {
+            if (small != null && !small.isRecycled()) small.recycle();
+        }
     }
 
     private void saveUndo() { /* no-op, we use strokes */ }
@@ -634,7 +648,7 @@ public class CutoutActivity extends AppCompatActivity {
             Intent result = new Intent();
             result.putExtra(EXTRA_RESULT_PATH, out.getAbsolutePath());
             setResult(Activity.RESULT_OK, result);
-            Toast.makeText(this, "Saved: " + out.getName(), Toast.LENGTH_LONG).show();
+            // تم حذف رسالة الحفظ المزعجة
             finish();
         } catch (Exception e) {
             Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
